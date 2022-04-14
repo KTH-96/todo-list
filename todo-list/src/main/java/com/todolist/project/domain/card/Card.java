@@ -16,10 +16,6 @@ public class Card {
 	private LocalDateTime createdTime;
 	private CardStatus cardStatus;
 
-	public LocalDateTime createTime() {
-		return LocalDateTime.now();
-	}
-
 	public Card(Long id, int cardIndex, String title, String contents, String writer,
 		LocalDateTime createdTime, CardStatus cardStatus) {
 		this.id = id;
