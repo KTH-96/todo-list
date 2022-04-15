@@ -4,6 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "start": "node server.js",
+    "heroku-postbuild": "webpack",
     "test": "echo \"Error: no test specified\" && exit 1",
     "build-dev": "webpack --mode development",
     "build": "webpack --mode production",
@@ -31,6 +33,7 @@
   },
   "dependencies": {
     "core-js": "^3.21.1",
+    "express": "^4.17.3",
     "webpack-cli": "^4.9.2"
   }
 }
