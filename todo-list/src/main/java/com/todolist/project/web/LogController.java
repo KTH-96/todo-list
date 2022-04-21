@@ -1,7 +1,7 @@
 package com.todolist.project.web;
 
 import com.todolist.project.service.LogService;
-import com.todolist.project.web.dto.LogListDto;
+import com.todolist.project.web.dto.LogResponseListDto;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,12 +18,12 @@ public class LogController {
 	private final LogService logService;
 
 	@GetMapping
-	public List<LogListDto> list() {
+	public List<LogResponseListDto> getLogList() {
 		return logService.findAll();
 	}
 
 	@PostMapping
-	public int save(@RequestBody LogListDto dto) {
-		return logService.saveLog(dto);
+	public int add(@RequestBody LogResponseListDto dto) {
+		return logService.addLog(dto);
 	}
 }

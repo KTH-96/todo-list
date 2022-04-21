@@ -18,6 +18,9 @@ public class CardUpdateDto {
 
 	public Card toEntity() {
 		CardStatus status = CardStatus.valueOf(this.cardStatus);
-		return new Card(cardIndex, title, contents, status);
+		return Card.builder().index(cardIndex)
+			.title(title)
+			.contents(contents)
+			.cardStatus(CardStatus.valueOf(cardStatus)).build();
 	}
 }

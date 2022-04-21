@@ -26,6 +26,8 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-jdbc'
 	runtimeOnly 'com.h2database:h2'
 
+	implementation 'com.fasterxml.jackson.core:jackson-databind:2.12.3'
+
 	implementation 'mysql:mysql-connector-java'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
