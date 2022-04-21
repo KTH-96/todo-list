@@ -6,8 +6,8 @@ import com.todolist.project.web.dto.CardAddDto;
 import com.todolist.project.web.dto.CardListRequestDto;
 import com.todolist.project.web.dto.CardListResponseDto;
 import com.todolist.project.web.dto.CardUpdateDto;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -26,21 +26,13 @@ public class CardService {
 	}
 
 	public List<CardListResponseDto> findAll() {
-		List<CardListResponseDto> dtos = new ArrayList<>();
-		List<Card> cards = cardRepository.findAll();
-		for (Card card : cards) {
-			dtos.add(card.toEntity());
-		}
-		return dtos;
+		return cardRepository.findAll().stream().map(CardListResponseDto::toDto)
+			.collect(Collectors.toList());
 	}
 
 	public List<CardListResponseDto> findByStatus(String cardStatus) {
-		List<CardListResponseDto> dtos = new ArrayList<>();
-		List<Card> cards = cardRepository.findCardsByStatus(cardStatus);
-		for (Card card : cards) {
-			dtos.add(card.toEntity());
-		}
-		return dtos;
+		return cardRepository.findCardsByStatus(cardStatus).stream().map(CardListResponseDto::toDto)
+			.collect(Collectors.toList());
 	}
 
 	public int updateCard(Long id, CardUpdateDto cardUpdateDto) {
@@ -49,7 +41,7 @@ public class CardService {
 
 	public CardListRequestDto findById(Long id) {
 		Card card = cardRepository.findCardById(id);
-		return new CardListRequestDto(card.getId(), card.getCardIndex(), card.getTitle(),
+		return new CardListRequestDto(card.getId(), card.getIndex(), card.getTitle(),
 			card.getContents(), card.getWriter(), String.valueOf(card.getCardStatus()),
 			card.getCreatedTime());
 	}

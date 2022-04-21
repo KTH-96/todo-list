@@ -21,34 +21,33 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/cards")
 @RestController
 public class CardController {
-    private final CardService cardService;
 
-    @GetMapping
-    public List<CardListResponseDto> getCardList() {
-        return cardService.findAll();
-    }
+	private final CardService cardService;
 
-    @GetMapping("/sort")
-    public List<CardListResponseDto> getCardListByStatus(@RequestParam("status") String cardStatus) {
-        return cardService.findByStatus(cardStatus);
-    }
+	@GetMapping
+	public List<CardListResponseDto> getCardList(@RequestParam("status") String cardStatus) {
+		if (cardStatus.isEmpty() || cardStatus.isBlank()) {
+			return cardService.findAll();
+		}
+		return cardService.findByStatus(cardStatus);
+	}
 
-    @PostMapping
-    public List<CardListResponseDto> add(@RequestBody CardAddDto dto) {
-        cardService.addCard(dto);
-        return cardService.findAll();
-    }
+	@PostMapping
+	public List<CardListResponseDto> add(@RequestBody CardAddDto dto) {
+		cardService.addCard(dto);
+		return cardService.findAll();
+	}
 
-    @DeleteMapping("/{id}")
-    public List<CardListResponseDto> remove(@PathVariable Long id) {
-        CardListRequestDto dto = cardService.findById(id);
-        cardService.removeCard(id);
-        return cardService.findAll();
-    }
+	@DeleteMapping("/{id}")
+	public List<CardListResponseDto> remove(@PathVariable Long id) {
+		cardService.findById(id);
+		cardService.removeCard(id);
+		return cardService.findAll();
+	}
 
-    @PutMapping("/{id}")
-    public List<CardListResponseDto> update(@PathVariable Long id, @RequestBody CardUpdateDto dto) {
-       cardService.updateCard(id, dto);
-       return cardService.findAll();
-    }
+	@PutMapping("/{id}")
+	public List<CardListResponseDto> update(@PathVariable Long id, @RequestBody CardUpdateDto dto) {
+		cardService.updateCard(id, dto);
+		return cardService.findAll();
+	}
 }

@@ -1,55 +1,49 @@
 package com.todolist.project.domain.log;
 
-import com.todolist.project.web.dto.LogListDto;
-import java.util.HashMap;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.todolist.project.domain.ActionStatus;
+import com.todolist.project.domain.CardStatus;
+import com.todolist.project.domain.SqlCommand;
+import java.util.List;
 import java.util.Map;
-import org.springframework.jdbc.core.JdbcTemplate;
+import javax.sql.DataSource;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import javax.sql.DataSource;
-import java.time.LocalDateTime;
-import java.util.List;
-
 @Repository
 public class LogRepository {
 
-	private static final String LOG_SELECT_SQL
-		= "SELECT title, current_status, prev_status, action_status, action_time FROM LOG ORDER BY action_time ASC";
-	private static final String LOG_INSERT_SQL
-		= "INSERT INTO LOG (title, current_status, prev_status, action_status, action_time) VALUES (:title, :current_status, :prev_status, :action_status, :action_time)";
 	private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
+	private final RowMapper<Log> rowMapper;
 
 	public LogRepository(DataSource dataSource) {
 		this.namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
+		this.rowMapper = (rs, rowNum) -> {
+			String prev_status = rs.getString("prev_status");
+			String current_status = rs.getString("current_status");
+			String action_status = rs.getString("action_status");
+			return new Log(
+				rs.getLong("id"),
+				rs.getString("title"),
+				Enum.valueOf(CardStatus.class, prev_status),
+				Enum.valueOf(CardStatus.class, current_status),
+				Enum.valueOf(ActionStatus.class, action_status),
+				rs.getTimestamp("action_time").toLocalDateTime()
+			);
+		};
 	}
 
-	public List<LogListDto> findAll() {
-		return namedParameterJdbcTemplate.query(LOG_SELECT_SQL,
-			(rs, rowNum) -> {
-				String title = rs.getString("title");
-				String prev_status = rs.getString("prev_status");
-				String current_status = rs.getString("current_status");
-				String actionStatus = rs.getString("action_status");
-				LocalDateTime action_time = rs.getTimestamp("action_time").toLocalDateTime();
-				return new LogListDto(title, prev_status, current_status, actionStatus,
-					action_time);
-			}
-		);
+	public List<Log> findAll() {
+		return namedParameterJdbcTemplate.query(SqlCommand.LOGS_ALL_SELECT_ORDER_BY_ASC, rowMapper);
 	}
 
 	public int save(Log log) {
 		MapSqlParameterSource mapSqlParameterSource = new MapSqlParameterSource();
-		Map<String, Object> map = new HashMap<>() {{
-			put("title", log.getTitle());
-			put("prev_status", log.getPrevStatus().name());
-			put("current_status", log.getCurrentStatus().name());
-			put("action_status", log.getActionStatus().name());
-			put("action_time", log.getActionTime());
-		}};
-		mapSqlParameterSource.addValues(map);
-		return namedParameterJdbcTemplate.update(LOG_INSERT_SQL, map);
+		ObjectMapper objectMapper = new ObjectMapper();
+		mapSqlParameterSource.addValues(objectMapper.convertValue(log, Map.class));
+		return namedParameterJdbcTemplate.update(SqlCommand.LOG_INSERT, mapSqlParameterSource);
 	}
 
 }

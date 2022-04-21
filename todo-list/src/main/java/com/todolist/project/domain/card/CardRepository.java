@@ -1,11 +1,11 @@
 package com.todolist.project.domain.card;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.todolist.project.domain.CardStatus;
-import java.util.HashMap;
+import com.todolist.project.domain.SqlCommand;
 import java.util.List;
 import java.util.Map;
 import javax.sql.DataSource;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -15,18 +15,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class CardRepository {
 
-	private final static String DELETE_CARD_SQL
-		= "DELETE FROM card WHERE id = :id";
-	private final static String FIND_CARD_SQL
-		= "SELECT id, card_index, title, contents, writer, card_status, created_date FROM card ORDER BY card_index ASC";
-	private final static String FIND_ID_SQL
-		= "SELECT id, card_index, title, contents, writer, card_status, created_date FROM card WHERE id = :id";
-	private final static String UPDATE_CARD_SQL
-		= "UPDATE card SET card_index = :index, title = :title, contents = :contents, card_status = :card_status, created_date = :created_date WHERE id = :id";
-	private final static String INSERT_CARD_SQL
-		= "INSERT INTO card(card_index, title, contents, writer, card_status) VALUES (:index,:title,:contents,:writer,:card_status)";
-	private final static String FIND_CARD_BY_STATUS_SQL
-		= "SELECT id, card_index, title, contents, writer, card_status, created_date FROM card WHERE card_status = :card_status";
 	private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 	private final RowMapper<Card> rowMapper;
 
@@ -48,54 +36,51 @@ public class CardRepository {
 
 	public Card findCardById(Long id) {
 		MapSqlParameterSource mapSqlParameterSource = new MapSqlParameterSource();
-		mapSqlParameterSource.addValue("id", id);
-		return namedParameterJdbcTemplate.queryForObject(FIND_ID_SQL, mapSqlParameterSource,
+		ObjectMapper objectMapper = new ObjectMapper();
+		mapSqlParameterSource.addValues(
+			objectMapper.convertValue(Card.builder().id(id), Map.class));
+		return namedParameterJdbcTemplate.queryForObject(SqlCommand.FIND_CARD_BY_ID,
+			mapSqlParameterSource,
 			rowMapper);
 	}
 
 	public List<Card> findCardsByStatus(String cardStatus) {
 		MapSqlParameterSource mapSqlParameterSource = new MapSqlParameterSource();
-		mapSqlParameterSource.addValue("card_status", cardStatus);
-		return namedParameterJdbcTemplate.query(FIND_CARD_BY_STATUS_SQL, mapSqlParameterSource,
+		ObjectMapper objectMapper = new ObjectMapper();
+		mapSqlParameterSource.addValues(
+			objectMapper.convertValue(Card.builder().cardStatus(CardStatus.valueOf(cardStatus)),
+				Map.class));
+		return namedParameterJdbcTemplate.query(SqlCommand.FIND_CARD_BY_STATUS,
+			mapSqlParameterSource,
 			rowMapper);
 	}
 
 	public List<Card> findAll() {
-		return namedParameterJdbcTemplate.query(FIND_CARD_SQL, rowMapper);
+		return namedParameterJdbcTemplate.query(SqlCommand.FIND_ALL_CARDS_ORDER_BY_ASC, rowMapper);
 
 	}
 
 	public int add(Card card) {
 		MapSqlParameterSource mapSqlParameterSource = new MapSqlParameterSource();
-		Map<String, Object> map = new HashMap<>() {{
-			put("index", card.getCardIndex());
-			put("title", card.getTitle());
-			put("contents", card.getContents());
-			put("writer", card.getWriter());
-			put("card_status", card.getCardStatus().name());
-		}};
-		mapSqlParameterSource.addValues(map);
-		return namedParameterJdbcTemplate.update(INSERT_CARD_SQL, mapSqlParameterSource);
+		ObjectMapper objectMapper = new ObjectMapper();
+		mapSqlParameterSource.addValues(objectMapper.convertValue(card, Map.class));
+		return namedParameterJdbcTemplate.update(SqlCommand.INSERT_CARD, mapSqlParameterSource);
 	}
 
 	public int remove(Long id) {
 		MapSqlParameterSource mapSqlParameterSource = new MapSqlParameterSource();
-		mapSqlParameterSource.addValue("id", id);
-		return namedParameterJdbcTemplate.update(DELETE_CARD_SQL, mapSqlParameterSource);
+		ObjectMapper objectMapper = new ObjectMapper();
+		mapSqlParameterSource.addValues(
+			objectMapper.convertValue(Card.builder().id(id), Map.class));
+		return namedParameterJdbcTemplate.update(SqlCommand.DELETE_CARD_BY_ID,
+			mapSqlParameterSource);
 	}
 
 	public int update(Long id, Card card) {
 		MapSqlParameterSource mapSqlParameterSource = new MapSqlParameterSource();
-		Map<String, Object> map = new HashMap<>() {{
-			put("id", id);
-			put("index", card.getCardIndex());
-			put("title", card.getTitle());
-			put("contents", card.getContents());
-			put("writer", card.getWriter());
-			put("created_date", card.getCreatedTime());
-			put("card_status", card.getCardStatus().name());
-		}};
-		mapSqlParameterSource.addValues(map);
-		return namedParameterJdbcTemplate.update(UPDATE_CARD_SQL, mapSqlParameterSource);
+		ObjectMapper objectMapper = new ObjectMapper();
+		mapSqlParameterSource.addValues(objectMapper.convertValue(card, Map.class));
+		return namedParameterJdbcTemplate.update(SqlCommand.UPDATE_CARD_BY_ID,
+			mapSqlParameterSource);
 	}
 }
